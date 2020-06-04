@@ -207,7 +207,9 @@ class SessionsController < ApplicationController
     return redirect_to root_path, flash: { alert: I18n.t("registration.banned.fail") } if check_auth_deleted
 
     # If using invitation registration method, make sure user is invited
-    return redirect_to root_path, flash: { alert: I18n.t("registration.invite.no_invite") } unless passes_invite_reqs
+		if @auth['provider'] != :ldap
+      return redirect_to root_path, flash: { alert: I18n.t("registration.invite.no_invite") } unless passes_invite_reqs
+		end
 
     # Switch the user to a social account if they exist under the same email with no social uid
     switch_account_to_social if !@user_exists && auth_changed_to_social?(@auth['info']['email'])
@@ -217,7 +219,7 @@ class SessionsController < ApplicationController
     logger.info "Support: Auth user #{user.email} is attempting to login."
 
     # Add pending role if approval method and is a new user
-    if approval_registration && !@user_exists
+    if approval_registration && !@user_exists && @auth['provider'] != :ldap
       user.add_role :pending
 
       # Inform admins that a user signed up if emails are turned on
