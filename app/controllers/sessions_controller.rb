@@ -39,7 +39,7 @@ class SessionsController < ApplicationController
         "#{Rails.configuration.relative_url_root}/auth/#{@providers.first}"
       end
 
-      return redirect_to provider_path
+      redirect_to provider_path
     end
   end
 
@@ -94,7 +94,7 @@ class SessionsController < ApplicationController
     login(user)
   end
 
-  # GET /users/logout
+  # POST /users/logout
   def destroy
     logout
     redirect_to root_path
@@ -219,8 +219,13 @@ class SessionsController < ApplicationController
     logger.info "Support: Auth user #{user.email} is attempting to login."
 
     # Add pending role if approval method and is a new user
+<<<<<<< HEAD
     if approval_registration && !@user_exists && @auth['provider'] != :ldap
       user.add_role :pending
+=======
+    if approval_registration && !@user_exists
+      user.set_role :pending
+>>>>>>> upstream/v2
 
       # Inform admins that a user signed up if emails are turned on
       send_approval_user_signup_email(user)
@@ -229,6 +234,8 @@ class SessionsController < ApplicationController
     end
 
     send_invite_user_signup_email(user) if invite_registration && !@user_exists
+
+    user.set_role :user if !@user_exists && user.role.nil?
 
     login(user)
 
